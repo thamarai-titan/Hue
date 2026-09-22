@@ -1,751 +1,543 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-
-// ─── Inline types & data (from data.ts) ─────────────────────────────────────
-
-interface Theme {
-    id: string;
-    name: string;
-    description: string;
-    vars: {
-        bg: string;
-        cardBg: string;
-        textPrimary: string;
-        textSecondary: string;
-        textMuted: string;
-        border: string;
-        accent: string;
-        accentSubtle: string;
-        accentText: string;
-        success: string;
-        successBg: string;
-        warning: string;
-        warningBg: string;
-        danger: string;
-        dangerBg: string;
-        muted: string;
-    };
-}
-
-const themes: Theme[] = [
-    {
-        id: "vercel-dark",
-        name: "Geist",
-        description: "Vercel-inspired stark contrast",
-        vars: {
-            bg: "#000000",
-            cardBg: "#111111",
-            textPrimary: "#ffffff",
-            textSecondary: "#a1a1a1",
-            textMuted: "#666666",
-            border: "#333333",
-            accent: "#ffffff",
-            accentSubtle: "#333333",
-            accentText: "#000000",
-            success: "#0070f3",
-            successBg: "rgba(0,112,243,0.1)",
-            warning: "#f5a623",
-            warningBg: "rgba(245,166,35,0.1)",
-            danger: "#ee0000",
-            dangerBg: "rgba(238,0,0,0.1)",
-            muted: "#222222",
-        },
-    },
-    {
-        id: "apple-light",
-        name: "Cupertino",
-        description: "Clean Apple-style silver",
-        vars: {
-            bg: "#f5f5f7",
-            cardBg: "#ffffff",
-            textPrimary: "#1d1d1f",
-            textSecondary: "#86868b",
-            textMuted: "#a1a1a6",
-            border: "#d2d2d7",
-            accent: "#0071e3",
-            accentSubtle: "#e8f2ff",
-            accentText: "#ffffff",
-            success: "#34c759",
-            successBg: "#f2fff5",
-            warning: "#ff9500",
-            warningBg: "#fff9f0",
-            danger: "#ff3b30",
-            dangerBg: "#fff1f0",
-            muted: "#e5e5ea",
-        },
-    },
-    {
-        id: "claude-light",
-        name: "Anthropic",
-        description: "Claude.ai warm paper aesthetic",
-        vars: {
-            bg: "#f9f6f1",
-            cardBg: "#ffffff",
-            textPrimary: "#1f1e1b",
-            textSecondary: "#6b6966",
-            textMuted: "#a6a4a1",
-            border: "#e6e1d6",
-            accent: "#d97757",
-            accentSubtle: "#f4ede4",
-            accentText: "#ffffff",
-            success: "#528a70",
-            successBg: "#f1f7f4",
-            warning: "#c28e40",
-            warningBg: "#f9f4ec",
-            danger: "#b34d4d",
-            dangerBg: "#f9f1f1",
-            muted: "#d8d1c5",
-        },
-    },
-    {
-        id: "linear-dark",
-        name: "Deep Space",
-        description: "Linear-style charcoal & indigo",
-        vars: {
-            bg: "#08090a",
-            cardBg: "#111214",
-            textPrimary: "#f7f8f8",
-            textSecondary: "#8a8f98",
-            textMuted: "#4b4e54",
-            border: "#222326",
-            accent: "#5e6ad2",
-            accentSubtle: "rgba(94,106,210,0.1)",
-            accentText: "#ffffff",
-            success: "#4df299",
-            successBg: "rgba(77,242,153,0.1)",
-            warning: "#f2a64d",
-            warningBg: "rgba(242,166,77,0.1)",
-            danger: "#f24d4d",
-            dangerBg: "rgba(242,77,77,0.1)",
-            muted: "#1a1c1e",
-        },
-    },
-    {
-        id: "mono-tangerine",
-        name: "Tangerine",
-        description: "Your custom minimalist orange",
-        vars: {
-            bg: "#0a0a0a",
-            cardBg: "#141414",
-            textPrimary: "#fafafa",
-            textSecondary: "#a1a1aa",
-            textMuted: "#52525b",
-            border: "#262626",
-            accent: "#ff8c00",
-            accentSubtle: "rgba(255,140,0,0.12)",
-            accentText: "#000000",
-            success: "#22c55e",
-            successBg: "rgba(34,197,94,0.1)",
-            warning: "#eab308",
-            warningBg: "rgba(234,179,8,0.1)",
-            danger: "#ef4444",
-            dangerBg: "rgba(239,68,68,0.1)",
-            muted: "#262626",
-        },
-    },
-    {
-        id: "github-dim",
-        name: "Primer",
-        description: "GitHub-style dimmed navy",
-        vars: {
-            bg: "#0d1117",
-            cardBg: "#161b22",
-            textPrimary: "#c9d1d9",
-            textSecondary: "#8b949e",
-            textMuted: "#484f58",
-            border: "#30363d",
-            accent: "#2f81f7",
-            accentSubtle: "rgba(47,129,247,0.1)",
-            accentText: "#ffffff",
-            success: "#238636",
-            successBg: "rgba(35,134,54,0.1)",
-            warning: "#d29922",
-            warningBg: "rgba(210,153,34,0.1)",
-            danger: "#f85149",
-            dangerBg: "rgba(248,81,73,0.1)",
-            muted: "#21262d",
-        },
-    },
-    {
-        id: "framer-purple",
-        name: "Framer",
-        description: "Creative electric violet",
-        vars: {
-            bg: "#050505",
-            cardBg: "#0f0f0f",
-            textPrimary: "#ffffff",
-            textSecondary: "#999999",
-            textMuted: "#444444",
-            border: "#222222",
-            accent: "#aa33ff",
-            accentSubtle: "rgba(170,51,255,0.15)",
-            accentText: "#ffffff",
-            success: "#00ff88",
-            successBg: "rgba(0,255,136,0.1)",
-            warning: "#ffaa00",
-            warningBg: "rgba(255,170,0,0.1)",
-            danger: "#ff3366",
-            dangerBg: "rgba(255,51,102,0.1)",
-            muted: "#1a1a1a",
-        },
-    },
-    {
-        id: "notion-bone",
-        name: "Notion",
-        description: "Ink & bone productivity",
-        vars: {
-            bg: "#ffffff",
-            cardBg: "#f7f6f3",
-            textPrimary: "#37352f",
-            textSecondary: "#73726e",
-            textMuted: "#acaba9",
-            border: "#e9e9e7",
-            accent: "#37352f",
-            accentSubtle: "#dfdedd",
-            accentText: "#ffffff",
-            success: "#0b6e4f",
-            successBg: "#e7f3ef",
-            warning: "#df9139",
-            warningBg: "#fbf3db",
-            danger: "#d44c47",
-            dangerBg: "#fbe4e4",
-            muted: "#efefef",
-        },
-    },
-    {
-        id: "midnight-neon",
-        name: "Cyber",
-        description: "High-contrast electric teal",
-        vars: {
-            bg: "#02040a",
-            cardBg: "#0b0e14",
-            textPrimary: "#e6edf3",
-            textSecondary: "#7d8590",
-            textMuted: "#484f58",
-            border: "#1b1f23",
-            accent: "#2dd4bf",
-            accentSubtle: "rgba(45,212,191,0.1)",
-            accentText: "#02040a",
-            success: "#3fb950",
-            successBg: "rgba(63,185,80,0.1)",
-            warning: "#d29922",
-            warningBg: "rgba(210,153,34,0.1)",
-            danger: "#f85149",
-            dangerBg: "rgba(248,81,73,0.1)",
-            muted: "#161b22",
-        },
-    },
-    {
-        id: "nordic-snow",
-        name: "Nord",
-        description: "Cool arctic frost",
-        vars: {
-            bg: "#2e3440",
-            cardBg: "#3b4252",
-            textPrimary: "#eceff4",
-            textSecondary: "#d8dee9",
-            textMuted: "#4c566a",
-            border: "#434c5e",
-            accent: "#88c0d0",
-            accentSubtle: "rgba(136,192,208,0.15)",
-            accentText: "#2e3440",
-            success: "#a3be8c",
-            successBg: "rgba(163,190,140,0.1)",
-            warning: "#ebcb8b",
-            warningBg: "rgba(235,203,139,0.1)",
-            danger: "#bf616a",
-            dangerBg: "rgba(191,97,106,0.1)",
-            muted: "#4c566a",
-        },
-    },
-];
-
-// ─── CSS export generator ────────────────────────────────────────────────────
-
-function generateCSS(theme: Theme): string {
-    return `:root {
-  --bg: ${theme.vars.bg};
-  --card-bg: ${theme.vars.cardBg};
-  --text-primary: ${theme.vars.textPrimary};
-  --text-secondary: ${theme.vars.textSecondary};
-  --text-muted: ${theme.vars.textMuted};
-  --border: ${theme.vars.border};
-  --accent: ${theme.vars.accent};
-  --accent-subtle: ${theme.vars.accentSubtle};
-  --accent-text: ${theme.vars.accentText};
-  --success: ${theme.vars.success};
-  --success-bg: ${theme.vars.successBg};
-  --warning: ${theme.vars.warning};
-  --warning-bg: ${theme.vars.warningBg};
-  --danger: ${theme.vars.danger};
-  --danger-bg: ${theme.vars.dangerBg};
-  --muted: ${theme.vars.muted};
-}`;
-}
-
-// ─── Apply theme to CSS vars ─────────────────────────────────────────────────
-
-function applyTheme(theme: Theme) {
-    const root = document.documentElement;
-    Object.entries(theme.vars).forEach(([key, value]) => {
-        const cssKey = key.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`);
-        root.style.setProperty(`--th-${cssKey}`, value);
-    });
-}
-
-const v = (name: string) => `var(--th-${name})`;
-
-// ─── Check icon ──────────────────────────────────────────────────────────────
-
-function CheckIcon() {
-    return (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
-
-function CopyIcon() {
-    return (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="4" y="4" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-            <path d="M2 10V2h8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
-
-// ─── Color swatch preview ────────────────────────────────────────────────────
-
-function ColorSwatch({ color, label }: { color: string; label: string }) {
-    return (
-        <div className="flex flex-col gap-1.5">
-            <div
-                className="w-full h-8 rounded-md border"
-                style={{ background: color, borderColor: "rgba(128,128,128,0.2)" }}
-            />
-            <span className="text-[10px] font-mono" style={{ color: v("text-muted") }}>
-                {label}
-            </span>
-            <span className="text-[10px] font-mono" style={{ color: v("text-muted") }}>
-                {color}
-            </span>
-        </div>
-    );
-}
-
-// ─── Main Component ──────────────────────────────────────────────────────────
+import { Theme, ThemeCategory, ProjectViewId } from "./types";
+import {
+  defaultThemes,
+  getRandomPreset,
+  invertTheme,
+  evaluateContrast,
+} from "./palettes";
+import AnalyticsProject from "./projects/AnalyticsProject";
+import EditorProject from "./projects/EditorProject";
+import EcommerceProject from "./projects/EcommerceProject";
+import AiChatProject from "./projects/AiChatProject";
+import ComponentsProject from "./projects/ComponentsProject";
+import CustomizerModal from "./CustomizerModal";
+import ExportModal from "./ExportModal";
 
 export default function ThemeShowcase() {
-    const [active, setActive] = useState<Theme>(themes[0]);
-    const [copied, setCopied] = useState(false);
+  const [themesList, setThemesList] = useState<Theme[]>(() => {
+    if (typeof window === "undefined") return defaultThemes;
+    try {
+      const saved = localStorage.getItem("hue_custom_themes");
+      if (saved) {
+        const parsed: Theme[] = JSON.parse(saved);
+        return [...defaultThemes, ...parsed];
+      }
+    } catch {
+      // ignore
+    }
+    return defaultThemes;
+  });
 
-    useEffect(() => {
-        applyTheme(active);
-    }, [active]);
+  const [active, setActive] = useState<Theme>(() => {
+    if (typeof window === "undefined") return defaultThemes[0];
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const themeData = params.get("themeData");
+      const themeName = params.get("themeName");
+      if (themeData) {
+        const parsedVars = JSON.parse(decodeURIComponent(themeData));
+        return {
+          id: `shared-${Date.now()}`,
+          name: themeName ? decodeURIComponent(themeName) : "Shared Palette",
+          description: "Imported via shareable URL",
+          category: "custom",
+          vars: parsedVars,
+          isCustom: true,
+        };
+      }
+    } catch {
+      // ignore
+    }
+    return defaultThemes[0];
+  });
 
-    useEffect(() => {
-        applyTheme(themes[0]);
-    }, []);
+  const [activeProject, setActiveProject] = useState<ProjectViewId>("analytics");
+  const [categoryFilter, setCategoryFilter] = useState<ThemeCategory | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-    const handleCopy = useCallback(() => {
-        navigator.clipboard.writeText(generateCSS(active)).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        });
-    }, [active]);
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  }, []);
 
-    const t = active.vars;
+  // Apply theme to CSS variables in DOM
+  const applyThemeVars = useCallback((t: Theme) => {
+    const root = document.documentElement;
+    Object.entries(t.vars).forEach(([key, value]) => {
+      const cssKey = key.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`);
+      root.style.setProperty(`--th-${cssKey}`, value);
+    });
+  }, []);
 
-    return (
+  useEffect(() => {
+    applyThemeVars(active);
+  }, [active, applyThemeVars]);
+
+  const handleRandomize = useCallback(() => {
+    const nextTheme = getRandomPreset(active.id);
+    setActive(nextTheme);
+    showToast(`Switched to "${nextTheme.name}"`);
+  }, [active.id, showToast]);
+
+  // Keyboard shortcut: Space to randomize (when not typing in an input/textarea)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.code === "Space" &&
+        !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName) &&
+        !isCustomizerOpen &&
+        !isExportOpen
+      ) {
+        e.preventDefault();
+        handleRandomize();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleRandomize, isCustomizerOpen, isExportOpen]);
+
+  const handleInvert = () => {
+    const invertedVars = invertTheme(active.vars);
+    const updated: Theme = {
+      ...active,
+      id: `inverted-${Date.now()}`,
+      name: `${active.name} (Inverted)`,
+      vars: invertedVars,
+    };
+    setActive(updated);
+    showToast("Palette inverted!");
+  };
+
+  const handleSaveCustomTheme = (newTheme: Theme) => {
+    const updatedList = [newTheme, ...themesList.filter((t) => t.id !== newTheme.id)];
+    setThemesList(updatedList);
+    setActive(newTheme);
+    try {
+      const customOnly = updatedList.filter((t) => t.isCustom);
+      localStorage.setItem("hue_custom_themes", JSON.stringify(customOnly));
+    } catch {
+      // ignore
+    }
+    showToast(`Saved "${newTheme.name}" to your library!`);
+  };
+
+  const handleDeleteCustomTheme = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const updated = themesList.filter((t) => t.id !== id);
+    setThemesList(updated);
+    try {
+      const customOnly = updated.filter((t) => t.isCustom);
+      localStorage.setItem("hue_custom_themes", JSON.stringify(customOnly));
+    } catch {
+      // ignore
+    }
+    if (active.id === id) {
+      setActive(defaultThemes[0]);
+    }
+    showToast("Custom theme removed");
+  };
+
+  const handleCopyHex = (color: string, label: string) => {
+    navigator.clipboard.writeText(color).then(() => {
+      showToast(`Copied ${label} (${color})`);
+    });
+  };
+
+  // Filter themes
+  const filteredThemes = themesList.filter((t) => {
+    const matchesCat = categoryFilter === "all" || t.category === categoryFilter;
+    const matchesSearch =
+      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCat && matchesSearch;
+  });
+
+  const t = active.vars;
+  const contrast = evaluateContrast(t.textPrimary, t.bg);
+
+  const projectTabs: Array<{ id: ProjectViewId; label: string; icon: string }> = [
+    { id: "analytics", label: "SaaS Analytics", icon: "📊" },
+    { id: "ide", label: "Cloud IDE", icon: "💻" },
+    { id: "ecommerce", label: "E-Commerce", icon: "🛍️" },
+    { id: "chat", label: "AI Chat", icon: "💬" },
+    { id: "uikit", label: "UI Kit", icon: "🧩" },
+  ];
+
+  return (
+    <div
+      className="min-h-screen w-full transition-colors duration-300 relative"
+      style={{ background: t.bg, color: t.textPrimary }}
+    >
+      {/* Toast popup */}
+      {toast && (
         <div
-            className="min-h-screen w-full transition-colors duration-300"
-            style={{ background: v("bg") }}
+          className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl border text-xs font-semibold shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-3"
+          style={{
+            background: t.cardBg,
+            borderColor: t.accent,
+            color: t.textPrimary,
+          }}
         >
-            {/* ── Header ── */}
-            <header
-                className="sticky top-0 border-b backdrop-blur-xl pointer-events-none"
-                style={{ borderColor: v("border"), background: `color-mix(in srgb, ${t.bg} 85%, transparent)` }}
-            >
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4 pointer-events-auto">
-                    <div className="flex items-center gap-2.5">
-                        <div
-                            className="w-6 h-6 rounded-md flex items-center justify-center"
-                            style={{ background: v("accent") }}
-                        >
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                <path d="M2 6h8M6 2v8" stroke={t.accentText} strokeWidth="1.5" strokeLinecap="round" />
-                            </svg>
-                        </div>
-                        <span className="text-sm font-semibold tracking-tight" style={{ color: v("text-primary") }}>
-                            Palettes
-                        </span>
-                    </div>
-                    <span className="text-xs" style={{ color: v("text-muted") }}>
-                        {themes.length} themes
-                    </span>
-                </div>
-            </header>
-
-            <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-
-                {/* ── Hero ── */}
-                <div className="mb-10">
-                    <p className="text-xs font-medium tracking-widest uppercase mb-3" style={{ color: v("accent") }}>
-                        Color System
-                    </p>
-                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2" style={{ color: v("text-primary") }}>
-                        Premium palettes,<br className="sm:hidden" /> zero configuration.
-                    </h1>
-                    <p className="text-sm" style={{ color: v("text-secondary") }}>
-                        Pick a vibe. Grab the variables. See how it Looks on Components.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-
-                    {/* ── Sidebar: Theme Selector ── */}
-                    <aside className="flex flex-col gap-2">
-                        {/* Theme list */}
-                        <div
-                            className="rounded-xl border overflow-hidden"
-                            style={{ borderColor: v("border") }}
-                        >
-                            {themes.map((theme, i) => {
-                                const isActive = active.id === theme.id;
-                                return (
-                                    <button
-                                        key={theme.id}
-                                        onClick={() => setActive(theme)}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
-                                        style={{
-                                            background: isActive ? v("accent-subtle") : v("card-bg"),
-                                            borderBottom: i < themes.length - 1 ? `1px solid ${v("border")}` : "none",
-                                        }}
-                                    >
-                                        {/* Color dot */}
-                                        <span
-                                            className="w-3 h-3 rounded-full shrink-0 ring-2 ring-offset-1"
-                                            style={{
-                                                background: theme.vars.accent,
-                                                outline: isActive ? theme.vars.accent : "transparent",
-                                                outlineOffset: theme.vars.bg,
-                                                boxShadow: isActive ? `0 0 0 2px ${theme.vars.bg}, 0 0 0 3.5px ${theme.vars.accent}` : "none",
-                                            }}
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <span
-                                                className="text-sm font-medium block"
-                                                style={{ color: isActive ? v("text-primary") : v("text-secondary") }}
-                                            >
-                                                {theme.name}
-                                            </span>
-                                            <span className="text-xs" style={{ color: v("text-muted") }}>
-                                                {theme.description}
-                                            </span>
-                                        </div>
-                                        {isActive && (
-                                            <span style={{ color: v("accent") }}>
-                                                <CheckIcon />
-                                            </span>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* Copy Button */}
-                        <button
-                            onClick={handleCopy}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
-                            style={{
-                                background: copied ? v("success") : v("accent"),
-                                color: copied ? "#fff" : v("accent-text"),
-                                opacity: 1,
-                            }}
-                        >
-                            {copied ? <CheckIcon /> : <CopyIcon />}
-                            {copied ? "Copied!" : "Copy CSS Variables"}
-                        </button>
-
-                        {/* CSS Preview */}
-                        <div
-                            className="rounded-xl border p-4 overflow-hidden"
-                            style={{ borderColor: v("border"), background: v("card-bg") }}
-                        >
-                            <p className="text-[10px] font-semibold tracking-widest uppercase mb-3" style={{ color: v("text-muted") }}>
-                                CSS Output
-                            </p>
-                            <pre
-                                className="text-[11px] font-mono leading-relaxed overflow-x-auto"
-                                style={{ color: v("text-secondary") }}
-                            >
-                                <code>{generateCSS(active)}</code>
-                            </pre>
-                        </div>
-                    </aside>
-
-                    {/* ── Main Preview Panel ── */}
-                    <div className="flex flex-col gap-4">
-
-                        {/* Panel header */}
-                        <div
-                            className="rounded-xl border p-5 sm:p-6"
-                            style={{ borderColor: v("border"), background: v("card-bg") }}
-                        >
-                            <div className="flex items-start justify-between gap-4 mb-6">
-                                <div>
-                                    <h2 className="text-lg font-bold mb-0.5" style={{ color: v("text-primary") }}>
-                                        {active.name}
-                                    </h2>
-                                    <p className="text-sm" style={{ color: v("text-secondary") }}>
-                                        {active.description}
-                                    </p>
-                                </div>
-                                <div className="flex gap-2 shrink-0">
-                                    <button
-                                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold"
-                                        style={{ background: v("accent"), color: v("accent-text") }}
-                                    >
-                                        Get started
-                                    </button>
-                                    <button
-                                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border"
-                                        style={{ borderColor: v("border"), color: v("text-secondary"), background: v("card-bg") }}
-                                    >
-                                        Docs
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Color Palette Grid */}
-                            <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-                                <ColorSwatch color={t.bg} label="bg" />
-                                <ColorSwatch color={t.cardBg} label="card-bg" />
-                                <ColorSwatch color={t.textPrimary} label="text" />
-                                <ColorSwatch color={t.border} label="border" />
-                                <ColorSwatch color={t.accent} label="accent" />
-                                <ColorSwatch color={t.success} label="success" />
-                                <ColorSwatch color={t.warning} label="warning" />
-                                <ColorSwatch color={t.danger} label="danger" />
-                            </div>
-                        </div>
-
-                        {/* Stats row */}
-                        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-                            {[
-                                { label: "Revenue", value: "$48.2K", delta: "+12.4%", pos: true },
-                                { label: "Active Users", value: "8,421", delta: "+5.2%", pos: true },
-                                { label: "Churn Rate", value: "2.1%", delta: "-0.4%", pos: true },
-                            ].map((s) => (
-                                <div
-                                    key={s.label}
-                                    className="rounded-xl border p-4"
-                                    style={{ borderColor: v("border"), background: v("card-bg") }}
-                                >
-                                    <p className="text-xs mb-2" style={{ color: v("text-muted") }}>
-                                        {s.label}
-                                    </p>
-                                    <p className="text-xl font-bold mb-1" style={{ color: v("text-primary") }}>
-                                        {s.value}
-                                    </p>
-                                    <p className="text-xs font-medium" style={{ color: v("success") }}>
-                                        {s.delta}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Two column */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                            {/* Left: Alerts */}
-                            <div className="flex flex-col gap-3">
-                                {[
-                                    { kind: "success", label: "Deployed", msg: "v2.4.1 is live on production." },
-                                    { kind: "warning", label: "Rate limit", msg: "80% of monthly quota used." },
-                                    { kind: "danger", label: "Build failed", msg: "Unexpected token in config.ts." },
-                                ].map(({ kind, label, msg }) => {
-                                    const colorKey = kind as "success" | "warning" | "danger";
-                                    const bgKey = `${kind}Bg` as keyof typeof t;
-                                    return (
-                                        <div
-                                            key={kind}
-                                            className="rounded-xl border px-4 py-3 flex items-start gap-3"
-                                            style={{ borderColor: t[colorKey], background: t[bgKey] as string }}
-                                        >
-                                            <span
-                                                className="text-xs font-bold mt-0.5 shrink-0"
-                                                style={{ color: t[colorKey] }}
-                                            >
-                                                {kind === "success" ? "✓" : kind === "warning" ? "⚠" : "✕"}
-                                            </span>
-                                            <div>
-                                                <p className="text-xs font-bold mb-0.5" style={{ color: t[colorKey] }}>
-                                                    {label}
-                                                </p>
-                                                <p className="text-xs" style={{ color: v("text-secondary") }}>
-                                                    {msg}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Right: Profile + Input + Tags */}
-                            <div className="flex flex-col gap-3">
-
-                                {/* Avatar card */}
-                                <div
-                                    className="rounded-xl border p-4 flex items-center gap-3"
-                                    style={{ borderColor: v("border"), background: v("card-bg") }}
-                                >
-                                    <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center text-base shrink-0 border"
-                                        style={{ background: v("accent-subtle"), borderColor: v("accent"), color: v("accent") }}
-                                    >
-                                        AK
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold" style={{ color: v("text-primary") }}>
-                                            Arjun Krishnan
-                                        </p>
-                                        <p className="text-xs" style={{ color: v("text-muted") }}>
-                                            Product Designer
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="text-[10px] font-bold px-2.5 py-1 rounded-full"
-                                        style={{ background: v("accent-subtle"), color: v("accent") }}
-                                    >
-                                        Pro
-                                    </span>
-                                </div>
-
-                                {/* Input */}
-                                <div
-                                    className="rounded-xl border p-4"
-                                    style={{ borderColor: v("border"), background: v("card-bg") }}
-                                >
-                                    <label
-                                        className="block text-[10px] font-semibold uppercase tracking-widest mb-2"
-                                        style={{ color: v("text-muted") }}
-                                    >
-                                        Email address
-                                    </label>
-                                    <input
-                                        type="email"
-                                        placeholder="you@example.com"
-                                        className="w-full px-3 py-2 rounded-lg text-sm outline-none border transition-colors"
-                                        style={{
-                                            background: v("bg"),
-                                            borderColor: v("border"),
-                                            color: v("text-primary"),
-                                            fontFamily: "inherit",
-                                        }}
-                                    />
-                                </div>
-
-                                {/* Tags */}
-                                <div
-                                    className="rounded-xl border p-4"
-                                    style={{ borderColor: v("border"), background: v("card-bg") }}
-                                >
-                                    <p
-                                        className="text-[10px] font-semibold uppercase tracking-widest mb-3"
-                                        style={{ color: v("text-muted") }}
-                                    >
-                                        Stack
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {["React", "TypeScript", "Next.js", "Tailwind", "Prisma"].map((tag) => (
-                                            <span
-                                                key={tag}
-                                                className="text-xs font-medium px-2.5 py-1 rounded-full border"
-                                                style={{
-                                                    background: v("accent-subtle"),
-                                                    color: v("text-secondary"),
-                                                    borderColor: v("border"),
-                                                }}
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Progress bars */}
-                        <div
-                            className="rounded-xl border p-5"
-                            style={{ borderColor: v("border"), background: v("card-bg") }}
-                        >
-                            <p
-                                className="text-[10px] font-semibold uppercase tracking-widest mb-4"
-                                style={{ color: v("text-muted") }}
-                            >
-                                Usage
-                            </p>
-                            <div className="flex flex-col gap-4">
-                                {[
-                                    { label: "Storage", value: 72 },
-                                    { label: "API Quota", value: 45 },
-                                    { label: "Bandwidth", value: 88 },
-                                ].map(({ label, value }) => (
-                                    <div key={label}>
-                                        <div className="flex justify-between mb-1.5">
-                                            <span className="text-xs" style={{ color: v("text-secondary") }}>
-                                                {label}
-                                            </span>
-                                            <span className="text-xs font-semibold" style={{ color: v("text-primary") }}>
-                                                {value}%
-                                            </span>
-                                        </div>
-                                        <div
-                                            className="h-1.5 rounded-full overflow-hidden"
-                                            style={{ background: v("muted") }}
-                                        >
-                                            <div
-                                                className="h-full rounded-full transition-all duration-700"
-                                                style={{ width: `${value}%`, background: v("accent") }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Typography */}
-                        <div
-                            className="rounded-xl border p-5"
-                            style={{ borderColor: v("border"), background: v("card-bg") }}
-                        >
-                            <p
-                                className="text-[10px] font-semibold uppercase tracking-widest mb-4"
-                                style={{ color: v("text-muted") }}
-                            >
-                                Typography
-                            </p>
-                            <div className="space-y-2">
-                                <p className="text-2xl font-bold" style={{ color: v("text-primary") }}>
-                                    The quick brown fox
-                                </p>
-                                <p className="text-sm leading-relaxed" style={{ color: v("text-secondary") }}>
-                                    Jumps over the lazy dog.{" "}
-                                    <span style={{ color: v("accent") }} className="font-semibold">
-                                        Accent color
-                                    </span>{" "}
-                                    makes important details stand out while{" "}
-                                    <span style={{ color: v("text-muted") }}>muted text</span> recedes quietly.
-                                </p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </main>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full" style={{ background: t.accent }} />
+            <span>{toast}</span>
+          </div>
         </div>
-    );
+      )}
+
+      {/* Main Studio Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-8">
+        {/* Studio Top Control Deck */}
+        <div
+          className="rounded-3xl border p-6 sm:p-8 backdrop-blur-xl relative overflow-hidden shadow-2xl"
+          style={{
+            background: `linear-gradient(135deg, ${t.cardBg}, ${t.muted})`,
+            borderColor: t.border,
+          }}
+        >
+          {/* Subtle Ambient Glow */}
+          <div
+            className="absolute -right-24 -top-24 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none transition-all duration-700"
+            style={{ background: t.accent }}
+          />
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div>
+              <div className="flex flex-wrap items-center gap-2.5 mb-2">
+                <span
+                  className="text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full border"
+                  style={{
+                    background: t.accentSubtle,
+                    color: t.accent,
+                    borderColor: t.border,
+                  }}
+                >
+                  Theme Studio v2.0
+                </span>
+                <span
+                  className="text-xs font-mono px-2.5 py-1 rounded-full border flex items-center gap-1.5"
+                  style={{
+                    borderColor: t.border,
+                    background: t.cardBg,
+                    color: contrast.gradeNormalAA ? t.success : t.warning,
+                  }}
+                >
+                  <span>WCAG {contrast.label}</span>
+                  <span className="opacity-70 font-semibold">{contrast.ratio}:1</span>
+                </span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2" style={{ color: t.textPrimary }}>
+                {active.name}
+              </h1>
+              <p className="text-sm max-w-xl" style={{ color: t.textSecondary }}>
+                {active.description}. Explore how your tokens adapt dynamically across enterprise apps.
+              </p>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              {/* Randomize */}
+              <button
+                id="btn-randomize-palette"
+                onClick={handleRandomize}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold border flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+                style={{
+                  borderColor: t.border,
+                  background: t.cardBg,
+                  color: t.textPrimary,
+                }}
+                title="Press Spacebar to randomize"
+              >
+                <span>🎲</span>
+                <span>Randomize</span>
+                <span className="text-[10px] opacity-50 font-mono hidden sm:inline">[Space]</span>
+              </button>
+
+              {/* Invert */}
+              <button
+                id="btn-invert-palette"
+                onClick={handleInvert}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all hover:scale-105"
+                style={{
+                  borderColor: t.border,
+                  background: t.cardBg,
+                  color: t.textPrimary,
+                }}
+              >
+                <span>🌓</span>
+                <span>Invert</span>
+              </button>
+
+              {/* Customize */}
+              <button
+                id="btn-customize-palette"
+                onClick={() => setIsCustomizerOpen(true)}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all hover:scale-105"
+                style={{
+                  borderColor: t.accent,
+                  background: t.accentSubtle,
+                  color: t.accent,
+                }}
+              >
+                <span>🎨</span>
+                <span>Customize</span>
+              </button>
+
+              {/* Export */}
+              <button
+                id="btn-export-code"
+                onClick={() => setIsExportOpen(true)}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all hover:scale-105 shadow-lg flex items-center gap-1.5"
+                style={{
+                  background: t.accent,
+                  color: t.accentText,
+                }}
+              >
+                <span>⚡</span>
+                <span>Export Code</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Color Swatch Bar */}
+          <div className="mt-6 pt-5 border-t grid grid-cols-5 sm:grid-cols-10 gap-2" style={{ borderColor: t.border }}>
+            {[
+              { label: "bg", color: t.bg },
+              { label: "card", color: t.cardBg },
+              { label: "text", color: t.textPrimary },
+              { label: "secondary", color: t.textSecondary },
+              { label: "muted", color: t.textMuted },
+              { label: "border", color: t.border },
+              { label: "accent", color: t.accent },
+              { label: "success", color: t.success },
+              { label: "warning", color: t.warning },
+              { label: "danger", color: t.danger },
+            ].map(({ label, color }) => (
+              <div
+                key={label}
+                onClick={() => handleCopyHex(color, label)}
+                className="group cursor-pointer flex flex-col items-center gap-1.5 p-1.5 rounded-xl hover:bg-black/10 transition-colors"
+                title={`Click to copy ${label} (${color})`}
+              >
+                <div
+                  className="w-full h-7 rounded-lg border transition-transform group-hover:scale-105 shadow-sm"
+                  style={{
+                    background: color,
+                    borderColor: t.border,
+                  }}
+                />
+                <span className="text-[10px] font-mono tracking-tight text-center truncate w-full" style={{ color: t.textMuted }}>
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Project View Tabs Bar */}
+        <div
+          className="p-1.5 rounded-2xl border flex flex-wrap items-center gap-1.5 shadow-sm"
+          style={{ background: t.cardBg, borderColor: t.border }}
+        >
+          <span className="text-xs font-semibold px-3 py-1.5 hidden md:inline" style={{ color: t.textMuted }}>
+            PROJECT PREVIEW:
+          </span>
+          {projectTabs.map((tab) => {
+            const isSel = activeProject === tab.id;
+            return (
+              <button
+                key={tab.id}
+                id={`project-tab-${tab.id}`}
+                onClick={() => setActiveProject(tab.id)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2"
+                style={{
+                  background: isSel ? t.accent : "transparent",
+                  color: isSel ? t.accentText : t.textSecondary,
+                  boxShadow: isSel ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+                }}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Studio Workspace: Sidebar + Preview */}
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
+          {/* Sidebar: Theme Catalog */}
+          <aside
+            className="rounded-2xl border p-4 sm:p-5 flex flex-col gap-4 shadow-lg sticky top-6"
+            style={{ background: t.cardBg, borderColor: t.border }}
+          >
+            {/* Header & Count */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold tracking-wider uppercase" style={{ color: t.textPrimary }}>
+                Themes Library
+              </span>
+              <span
+                className="text-[11px] font-mono px-2 py-0.5 rounded-full"
+                style={{ background: t.muted, color: t.textMuted }}
+              >
+                {filteredThemes.length} available
+              </span>
+            </div>
+
+            {/* Search Input */}
+            <input
+              type="text"
+              id="theme-search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search palettes..."
+              className="w-full px-3.5 py-2 rounded-xl text-xs outline-none border transition-colors"
+              style={{
+                background: t.bg,
+                borderColor: t.border,
+                color: t.textPrimary,
+              }}
+            />
+
+            {/* Category Filter Chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {(["all", "dark", "light", "cyber", "editorial", "custom"] as const).map((cat) => (
+                <button
+                  key={cat}
+                  id={`cat-filter-${cat}`}
+                  onClick={() => setCategoryFilter(cat)}
+                  className="px-2.5 py-1 text-[11px] font-medium rounded-lg capitalize transition-colors"
+                  style={{
+                    background: categoryFilter === cat ? t.accent : t.bg,
+                    color: categoryFilter === cat ? t.accentText : t.textSecondary,
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Themes List Scrollable */}
+            <div className="max-h-[440px] overflow-y-auto space-y-1.5 pr-1">
+              {filteredThemes.map((theme) => {
+                const isSelected = active.id === theme.id;
+                return (
+                  <div
+                    key={theme.id}
+                    id={`theme-item-${theme.id}`}
+                    onClick={() => setActive(theme)}
+                    className="group w-full p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between gap-3 hover:scale-[1.01]"
+                    style={{
+                      borderColor: isSelected ? t.accent : t.border,
+                      background: isSelected ? t.accentSubtle : t.bg,
+                    }}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Color Preview Swatch */}
+                      <span
+                        className="w-4 h-4 rounded-full shrink-0 border ring-2 ring-offset-1"
+                        style={{
+                          background: theme.vars.accent,
+                          borderColor: theme.vars.border,
+                          outline: isSelected ? theme.vars.accent : "transparent",
+                          boxShadow: isSelected
+                            ? `0 0 0 2px ${theme.vars.bg}, 0 0 0 4px ${theme.vars.accent}`
+                            : "none",
+                        }}
+                      />
+                      <div className="min-w-0">
+                        <p
+                          className="text-xs font-semibold truncate"
+                          style={{ color: isSelected ? t.textPrimary : t.textSecondary }}
+                        >
+                          {theme.name}
+                        </p>
+                        <p className="text-[10px] truncate" style={{ color: t.textMuted }}>
+                          {theme.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {theme.isCustom && (
+                        <button
+                          onClick={(e) => handleDeleteCustomTheme(e, theme.id)}
+                          className="text-xs p-1 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity"
+                          title="Delete custom theme"
+                        >
+                          ✕
+                        </button>
+                      )}
+                      {isSelected && (
+                        <span className="text-xs font-bold" style={{ color: t.accent }}>
+                          ✓
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {filteredThemes.length === 0 && (
+                <div className="py-8 text-center text-xs" style={{ color: t.textMuted }}>
+                  No palettes found matching &ldquo;{searchQuery}&rdquo;
+                </div>
+              )}
+            </div>
+
+            {/* Add Custom Theme Button */}
+            <button
+              id="sidebar-create-custom-btn"
+              onClick={() => setIsCustomizerOpen(true)}
+              className="w-full py-2.5 rounded-xl text-xs font-semibold border border-dashed flex items-center justify-center gap-1.5 transition-colors hover:opacity-90"
+              style={{
+                borderColor: t.accent,
+                color: t.accent,
+                background: t.accentSubtle,
+              }}
+            >
+              <span>+</span>
+              <span>Create Custom Theme</span>
+            </button>
+          </aside>
+
+          {/* Active Project Showcase Surface */}
+          <main
+            className="rounded-3xl border p-6 sm:p-8 shadow-2xl transition-all duration-300"
+            style={{
+              background: t.bg,
+              borderColor: t.border,
+            }}
+          >
+            {activeProject === "analytics" && <AnalyticsProject theme={active} />}
+            {activeProject === "ide" && <EditorProject theme={active} />}
+            {activeProject === "ecommerce" && <EcommerceProject theme={active} />}
+            {activeProject === "chat" && <AiChatProject theme={active} />}
+            {activeProject === "uikit" && <ComponentsProject theme={active} />}
+          </main>
+        </div>
+      </div>
+
+      {/* Modals */}
+      <CustomizerModal
+        theme={active}
+        isOpen={isCustomizerOpen}
+        onClose={() => setIsCustomizerOpen(false)}
+        onApplyTheme={(updated) => setActive(updated)}
+        onSaveCustomTheme={handleSaveCustomTheme}
+      />
+
+      <ExportModal
+        theme={active}
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+      />
+    </div>
+  );
 }

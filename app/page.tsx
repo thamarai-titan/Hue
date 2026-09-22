@@ -5,15 +5,13 @@ import Footer from "@/components/shared/Footer";
 
 export default function Home() {
   return (
-    <main className="">
+    <div className="min-h-screen flex flex-col transition-colors duration-300">
       <Nav />
-      <section className="p-4">
-        <Header />
-      </section>
-      <section className="p-4">
+      <Header />
+      <div className="flex-1">
         <Themeshowcase />
-      </section>
+      </div>
       <Footer />
-    </main>
+    </div>
   );
 }
